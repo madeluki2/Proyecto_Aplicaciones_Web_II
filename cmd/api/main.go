@@ -32,6 +32,7 @@ func main() {
 		r.Post("/", servidor.CrearCliente)
 		r.Get("/{id}", servidor.ObtenerCliente)
 		r.Put("/{id}", servidor.ActualizarCliente)
+		r.Patch("/{id}/tipo", servidor.CambiarTipoCliente)
 		r.Delete("/{id}", servidor.EliminarCliente)
 	})
 
