@@ -121,6 +121,46 @@ func (s *Server) ActualizarCliente(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// CambiarTipoCliente actualiza únicamente el tipo de un cliente (PATCH)
+func (s *Server) CambiarTipoCliente(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+
+	// Convertimos el ID de texto a entero
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "el id debe ser un número entero", http.StatusBadRequest)
+		return
+	}
+
+	// Recibimos solo el tipo_cliente en el body
+	var body struct {
+		TipoCliente string `json:"tipo_cliente"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		http.Error(w, "JSON inválido: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Validamos que el tipo sea uno de los permitidos
+	tipo := strings.TrimSpace(body.TipoCliente)
+	if tipo != "restaurante" && tipo != "intermediario" && tipo != "mayorista" {
+		http.Error(w, "tipo_cliente debe ser: restaurante, intermediario o mayorista", http.StatusBadRequest)
+		return
+	}
+
+	actualizado, encontrado := s.storage.CambiarTipoCliente(id, tipo)
+	if !encontrado {
+		http.Error(w, "cliente no encontrado", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(actualizado); err != nil {
+		log.Printf("error codificando JSON: %v", err)
+	}
+}
+
 // EliminarCliente remueve un cliente por su ID (DELETE)
 func (s *Server) EliminarCliente(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
