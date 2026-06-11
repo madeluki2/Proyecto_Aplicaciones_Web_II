@@ -131,6 +131,20 @@ func (m *Memoria) EliminarCliente(id int) bool {
 	return false
 }
 
+// CambiarTipoCliente actualiza únicamente el tipo de un cliente existente
+func (m *Memoria) CambiarTipoCliente(id int, nuevoTipo string) (models.Cliente, bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	for i, c := range m.clientes {
+		if c.ID == id {
+			m.clientes[i].TipoCliente = nuevoTipo
+			return m.clientes[i], true
+		}
+	}
+	return models.Cliente{}, false
+}
+
 // -------------------- PEDIDOS --------------------
 
 // ListarPedidos devuelve todos los pedidos guardados en memoria
