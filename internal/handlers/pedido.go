@@ -222,9 +222,9 @@ func (s *Server) ActualizarPedido(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validamos que al menos un campo venga para actualizar
-	if strings.TrimSpace(datos.Estado) == "" && strings.TrimSpace(datos.Fecha) == "" && datos.Total == 0 {
-		http.Error(w, "debe enviar al menos un campo para actualizar", http.StatusBadRequest)
+	// Validación de campos obligatorios
+	if datos.ClienteID == 0 || strings.TrimSpace(datos.Fecha) == "" {
+		http.Error(w, "ClienteID y Fecha son obligatorios", http.StatusBadRequest)
 		return
 	}
 
