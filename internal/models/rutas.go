@@ -35,6 +35,7 @@ type Punto struct {
 type Transportista struct {
 	ID            uint      `json:"id"`
 	Nombre        string    `json:"nombre"`
+	Apellido      string    `json:"apellido"`
 	Telefono      string    `json:"telefono"`
 	PlacaVehiculo string    `json:"placa_vehiculo"` // único
 	Estado        string    `json:"estado"`         // activo / inactivo
