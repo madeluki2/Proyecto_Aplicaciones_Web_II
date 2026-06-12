@@ -1,3 +1,8 @@
+// Package storage gestiona el almacenamiento en memoria del módulo
+// de Gestión de Pedidos de Pesca-Directa Tarqui.
+//
+// El tipo Memoria mantiene en un solo lugar todos los datos del dominio:
+// Clientes, Pedidos y Detalles de Pedido.
 package storage
 
 import (
@@ -6,30 +11,37 @@ import (
 	"Proyecto_Aplicaciones_Web_II/internal/models"
 )
 
-// Memoria mantiene todos los datos del módulo de Gestión de Pedidos
+// Memoria es un almacén unificado del módulo de Gestión de Pedidos.
 type Memoria struct {
 	clientes      []models.Cliente
-	pedidos       []models.Pedido
-	detalles      []models.DetallePedido
 	nextClienteID int
-	nextPedidoID  int
+
+	pedidos      []models.Pedido
+	nextPedidoID int
+
+	detalles      []models.DetallePedido
 	nextDetalleID int
-	mu            sync.Mutex
+
+	mu sync.Mutex
 }
 
-// NewMemoria crea un almacén vacío y listo para usar
+// NewMemoria crea un almacén vacío y listo para usar.
 func NewMemoria() *Memoria {
 	return &Memoria{
 		clientes:      []models.Cliente{},
-		pedidos:       []models.Pedido{},
-		detalles:      []models.DetallePedido{},
 		nextClienteID: 1,
+		pedidos:       []models.Pedido{},
 		nextPedidoID:  1,
+		detalles:      []models.DetallePedido{},
 		nextDetalleID: 1,
 	}
 }
 
-// Seed carga datos iniciales de prueba en memoria
+// =========================================================
+// SEED
+// =========================================================
+
+// Seed carga datos iniciales de prueba en memoria.
 func (m *Memoria) Seed() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -56,21 +68,25 @@ func (m *Memoria) Seed() {
 	m.nextDetalleID = 3
 }
 
-// -------------------- CLIENTES --------------------
+// =========================================================
+// CLIENTES
+// =========================================================
 
-// ListarClientes devuelve todos los clientes guardados en memoria
+// ListarClientes devuelve todos los clientes en memoria.
 func (m *Memoria) ListarClientes() []models.Cliente {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
 	copia := make([]models.Cliente, len(m.clientes))
 	copy(copia, m.clientes)
 	return copia
 }
 
-// BuscarClientePorID devuelve el cliente con el ID dado
+// BuscarClientePorID devuelve el cliente con el ID dado (patrón comma-ok).
 func (m *Memoria) BuscarClientePorID(id int) (models.Cliente, bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
 	for _, c := range m.clientes {
 		if c.ID == id {
 			return c, true
@@ -79,49 +95,52 @@ func (m *Memoria) BuscarClientePorID(id int) (models.Cliente, bool) {
 	return models.Cliente{}, false
 }
 
-// CrearCliente agrega un nuevo cliente con ID incremental
-func (m *Memoria) CrearCliente(cliente models.Cliente) models.Cliente {
+// CrearCliente agrega un cliente nuevo y devuelve el cliente con ID asignado.
+func (m *Memoria) CrearCliente(c models.Cliente) models.Cliente {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	cliente.ID = m.nextClienteID
-	m.clientes = append(m.clientes, cliente)
+
+	c.ID = m.nextClienteID
 	m.nextClienteID++
-	return cliente
+	m.clientes = append(m.clientes, c)
+	return c
 }
 
-// ActualizarCliente reemplaza los datos del cliente con el ID dado
-func (m *Memoria) ActualizarCliente(id int, cliente models.Cliente) (models.Cliente, bool) {
+// ActualizarCliente reemplaza el cliente con el ID dado.
+func (m *Memoria) ActualizarCliente(id int, datos models.Cliente) (models.Cliente, bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
 	for i, c := range m.clientes {
 		if c.ID == id {
-			cliente.ID = c.ID
-			if cliente.TipoCliente == "" {
-				cliente.TipoCliente = c.TipoCliente
+			datos.ID = id
+			if datos.TipoCliente == "" {
+				datos.TipoCliente = c.TipoCliente
 			}
-			if cliente.NombreNegocio == "" {
-				cliente.NombreNegocio = c.NombreNegocio
+			if datos.NombreNegocio == "" {
+				datos.NombreNegocio = c.NombreNegocio
 			}
-			if cliente.Direccion == "" {
-				cliente.Direccion = c.Direccion
+			if datos.Direccion == "" {
+				datos.Direccion = c.Direccion
 			}
-			if cliente.Telefono == "" {
-				cliente.Telefono = c.Telefono
+			if datos.Telefono == "" {
+				datos.Telefono = c.Telefono
 			}
-			if cliente.Estado == "" {
-				cliente.Estado = c.Estado
+			if datos.Estado == "" {
+				datos.Estado = c.Estado
 			}
-			m.clientes[i] = cliente
-			return cliente, true
+			m.clientes[i] = datos
+			return datos, true
 		}
 	}
 	return models.Cliente{}, false
 }
 
-// EliminarCliente remueve el cliente con el ID dado
+// EliminarCliente elimina el cliente con el ID dado.
 func (m *Memoria) EliminarCliente(id int) bool {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
 	for i, c := range m.clientes {
 		if c.ID == id {
 			m.clientes = append(m.clientes[:i], m.clientes[i+1:]...)
@@ -131,7 +150,7 @@ func (m *Memoria) EliminarCliente(id int) bool {
 	return false
 }
 
-// CambiarTipoCliente actualiza únicamente el tipo de un cliente existente
+// CambiarTipoCliente actualiza únicamente el tipo de un cliente existente.
 func (m *Memoria) CambiarTipoCliente(id int, nuevoTipo string) (models.Cliente, bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -145,21 +164,25 @@ func (m *Memoria) CambiarTipoCliente(id int, nuevoTipo string) (models.Cliente, 
 	return models.Cliente{}, false
 }
 
-// -------------------- PEDIDOS --------------------
+// =========================================================
+// PEDIDOS
+// =========================================================
 
-// ListarPedidos devuelve todos los pedidos guardados en memoria
+// ListarPedidos devuelve todos los pedidos en memoria.
 func (m *Memoria) ListarPedidos() []models.Pedido {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
 	copia := make([]models.Pedido, len(m.pedidos))
 	copy(copia, m.pedidos)
 	return copia
 }
 
-// BuscarPedidoPorID devuelve el pedido con el ID dado
+// BuscarPedidoPorID devuelve el pedido con el ID dado (patrón comma-ok).
 func (m *Memoria) BuscarPedidoPorID(id int) (models.Pedido, bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
 	for _, p := range m.pedidos {
 		if p.ID == id {
 			return p, true
@@ -168,46 +191,49 @@ func (m *Memoria) BuscarPedidoPorID(id int) (models.Pedido, bool) {
 	return models.Pedido{}, false
 }
 
-// CrearPedido agrega un nuevo pedido con ID incremental
-func (m *Memoria) CrearPedido(pedido models.Pedido) models.Pedido {
+// CrearPedido agrega un pedido nuevo y devuelve el pedido con ID asignado.
+func (m *Memoria) CrearPedido(p models.Pedido) models.Pedido {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	pedido.ID = m.nextPedidoID
-	m.pedidos = append(m.pedidos, pedido)
+
+	p.ID = m.nextPedidoID
 	m.nextPedidoID++
-	return pedido
+	m.pedidos = append(m.pedidos, p)
+	return p
 }
 
-// ActualizarPedido reemplaza los datos del pedido con el ID dado
-func (m *Memoria) ActualizarPedido(id int, pedido models.Pedido) (models.Pedido, bool) {
+// ActualizarPedido reemplaza el pedido con el ID dado.
+func (m *Memoria) ActualizarPedido(id int, datos models.Pedido) (models.Pedido, bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
 	for i, p := range m.pedidos {
 		if p.ID == id {
-			pedido.ID = p.ID
-			if pedido.Estado == "" {
-				pedido.Estado = p.Estado
+			datos.ID = id
+			if datos.Estado == "" {
+				datos.Estado = p.Estado
 			}
-			if pedido.Fecha == "" {
-				pedido.Fecha = p.Fecha
+			if datos.Fecha == "" {
+				datos.Fecha = p.Fecha
 			}
-			if pedido.Total == 0 {
-				pedido.Total = p.Total
+			if datos.Total == 0 {
+				datos.Total = p.Total
 			}
-			if pedido.ClienteID == 0 {
-				pedido.ClienteID = p.ClienteID
+			if datos.ClienteID == 0 {
+				datos.ClienteID = p.ClienteID
 			}
-			m.pedidos[i] = pedido
-			return pedido, true
+			m.pedidos[i] = datos
+			return datos, true
 		}
 	}
 	return models.Pedido{}, false
 }
 
-// EliminarPedido remueve el pedido con el ID dado
+// EliminarPedido elimina el pedido con el ID dado.
 func (m *Memoria) EliminarPedido(id int) bool {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
 	for i, p := range m.pedidos {
 		if p.ID == id {
 			m.pedidos = append(m.pedidos[:i], m.pedidos[i+1:]...)
@@ -217,21 +243,25 @@ func (m *Memoria) EliminarPedido(id int) bool {
 	return false
 }
 
-// -------------------- DETALLES DE PEDIDO --------------------
+// =========================================================
+// DETALLES DE PEDIDO
+// =========================================================
 
-// ListarDetalles devuelve todos los detalles guardados en memoria
+// ListarDetalles devuelve todos los detalles en memoria.
 func (m *Memoria) ListarDetalles() []models.DetallePedido {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
 	copia := make([]models.DetallePedido, len(m.detalles))
 	copy(copia, m.detalles)
 	return copia
 }
 
-// BuscarDetallePorID devuelve el detalle con el ID dado
+// BuscarDetallePorID devuelve el detalle con el ID dado (patrón comma-ok).
 func (m *Memoria) BuscarDetallePorID(id int) (models.DetallePedido, bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
 	for _, d := range m.detalles {
 		if d.ID == id {
 			return d, true
@@ -240,49 +270,52 @@ func (m *Memoria) BuscarDetallePorID(id int) (models.DetallePedido, bool) {
 	return models.DetallePedido{}, false
 }
 
-// CrearDetalle agrega un nuevo detalle de pedido con ID incremental
-func (m *Memoria) CrearDetalle(detalle models.DetallePedido) models.DetallePedido {
+// CrearDetalle agrega un detalle nuevo y devuelve el detalle con ID asignado.
+func (m *Memoria) CrearDetalle(d models.DetallePedido) models.DetallePedido {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	detalle.ID = m.nextDetalleID
-	m.detalles = append(m.detalles, detalle)
+
+	d.ID = m.nextDetalleID
 	m.nextDetalleID++
-	return detalle
+	m.detalles = append(m.detalles, d)
+	return d
 }
 
-// ActualizarDetalle reemplaza los datos del detalle con el ID dado
-func (m *Memoria) ActualizarDetalle(id int, detalle models.DetallePedido) (models.DetallePedido, bool) {
+// ActualizarDetalle reemplaza el detalle con el ID dado.
+func (m *Memoria) ActualizarDetalle(id int, datos models.DetallePedido) (models.DetallePedido, bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
 	for i, d := range m.detalles {
 		if d.ID == id {
-			detalle.ID = d.ID
-			if detalle.CantidadKg == 0 {
-				detalle.CantidadKg = d.CantidadKg
+			datos.ID = id
+			if datos.CantidadKg == 0 {
+				datos.CantidadKg = d.CantidadKg
 			}
-			if detalle.PrecioUnitario == 0 {
-				detalle.PrecioUnitario = d.PrecioUnitario
+			if datos.PrecioUnitario == 0 {
+				datos.PrecioUnitario = d.PrecioUnitario
 			}
-			if detalle.Subtotal == 0 {
-				detalle.Subtotal = d.Subtotal
+			if datos.Subtotal == 0 {
+				datos.Subtotal = d.Subtotal
 			}
-			if detalle.EspecieID == 0 {
-				detalle.EspecieID = d.EspecieID
+			if datos.EspecieID == 0 {
+				datos.EspecieID = d.EspecieID
 			}
-			if detalle.PedidoID == 0 {
-				detalle.PedidoID = d.PedidoID
+			if datos.PedidoID == 0 {
+				datos.PedidoID = d.PedidoID
 			}
-			m.detalles[i] = detalle
-			return detalle, true
+			m.detalles[i] = datos
+			return datos, true
 		}
 	}
 	return models.DetallePedido{}, false
 }
 
-// EliminarDetalle remueve el detalle con el ID dado
+// EliminarDetalle elimina el detalle con el ID dado.
 func (m *Memoria) EliminarDetalle(id int) bool {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
 	for i, d := range m.detalles {
 		if d.ID == id {
 			m.detalles = append(m.detalles[:i], m.detalles[i+1:]...)
