@@ -114,6 +114,9 @@ func (m *Memoria) ActualizarCliente(id int, datos models.Cliente) (models.Client
 	for i, c := range m.clientes {
 		if c.ID == id {
 			datos.ID = id
+			if datos.UsuarioID == 0 {
+				datos.UsuarioID = c.UsuarioID
+			}
 			if datos.TipoCliente == "" {
 				datos.TipoCliente = c.TipoCliente
 			}
