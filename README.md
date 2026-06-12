@@ -3,63 +3,231 @@
 # Proyecto: Pesca-Directa Tarqui (Del Mar a la Mesa)
 
 ## Descripción
-Plataforma web que conecta directamente a pescadores de Tarqui(Manta) con restaurantes y cevicherías locales.
-El sistema busca eliminar intermediarios, mejorar los ingresos de los pescadores y garantizar pescado fresco para los negocios gastronómicos.
+
+Pesca-Directa Tarqui es una plataforma orientada a digitalizar la comercialización de productos pesqueros artesanales en el Puerto de Tarqui (Manta, Ecuador).
+
+El sistema conecta pescadores, clientes comerciales y operadores logísticos mediante una arquitectura basada en dominios de negocio, permitiendo gestionar capturas, inventario disponible, pedidos y distribución de productos pesqueros.
+
+El objetivo principal es reducir la dependencia de intermediarios, mejorar la trazabilidad del producto y optimizar la conexión entre oferta y demanda.
+
+---
 
 ## Problema
-- Los pescadores venden a intermediarios que imponen precios bajos sin negociación.
-- Los restaurantes no saben qué pescado llega cada mañana al puerto.
-- La falta de transparencia genera pérdidas para ambos lados.
 
-### Solución
-Un sistema con:
-- **Módulo de Especies y Catálogo del Mar**: se encarga de registrar y administrar las especies disponibles en el puerto.
-- **Módulo de Pescadores y Embarcaciones**: gestiona la informaciín de los pescadores artesanales y sus embarcaciones.
-- **Módulo de Restaurantes y Cevicherías**: administra los perfiles de los restaurantes y sus preferencias de compra.
+Actualmente la comercialización pesquera artesanal presenta varios inconvenientes:
+
+* Los pescadores venden sus capturas a intermediarios que establecen precios poco favorables.
+* Los compradores carecen de información actualizada sobre disponibilidad, cantidad y frescura de los productos.
+* No existe una trazabilidad adecuada del producto desde la captura hasta la entrega final.
+* La logística de distribución se gestiona de forma manual e informal.
+* La información comercial depende de llamadas telefónicas, contactos personales y grupos de WhatsApp.
+
+---
+
+## Solución
+
+Pesca-Directa Tarqui propone una plataforma API REST organizada en tres dominios principales:
+
+### Gestión de Pesca
+
+Administra la operación pesquera artesanal.
+
+Entidades principales:
+
+* Usuario
+* Pescador
+* Embarcación
+* Especie
+* Captura
+* Bodega
+* Stock
+
+Funciones:
+
+* Registro de pescadores.
+* Administración de embarcaciones.
+* Registro de capturas diarias.
+* Control de especies disponibles.
+* Gestión de inventario y stock.
+
+---
+
+### Gestión de Pedidos
+
+Administra la demanda comercial.
+
+Entidades principales:
+
+* Cliente
+* Pedido
+* DetallePedido
+
+Funciones:
+
+* Registro de clientes.
+* Gestión de pedidos.
+* Control de productos solicitados.
+* Seguimiento de compras.
+
+Tipos de cliente:
+
+* Restaurante
+* Intermediario
+* Mayorista
+
+---
+
+### Ruta de Distribución
+
+Administra la logística de entrega.
+
+Entidades principales:
+
+* Ruta
+* Punto
+* Transportista
+* EntregaPedido
+
+Funciones:
+
+* Definición de rutas de distribución.
+* Administración de puntos de recorrido.
+* Asignación de transportistas.
+* Seguimiento de entregas.
+* Control de estados logísticos.
+
+---
 
 ## Regla de Negocio No-CRUD
-Sistema de alertas por *"Captura del Día"* con precios dinámicos.
+
+### Sistema de Alertas por Escasez
+
+El sistema analiza la disponibilidad histórica de especies pesqueras.
+
 Ejemplo:
-- Si la cantidad disponible de una especie es menor al 30% del promedio de los últimos 7 días el sistema envía una alerta de escasez.
-- Precios varían según hora de llegada: antes de las 06:00 premium, después de las 09:00 descuento.
-- Restaurantes reciben notificación con especie, cantidad y precio sugerido.
+
+* Si la cantidad disponible de una especie es menor al 30% del promedio de los últimos 7 días se genera una alerta de escasez.
+* Los clientes reciben notificaciones sobre disponibilidad limitada.
+* Se puede sugerir un precio dinámico basado en la oferta disponible.
 
 ---
 
 ## Stack Tecnológico
-- **Lenguaje principal**: Go (Golang)
--  **Framework web**: net/http (posible integración futura con Chi router)
--  **Base de datos**: SQLite, PostgreSQL
--  **ORM**: GORM (librería más usada en Go para hacer ORM).
--  **Autenticación**: JWT
--  **Arquitectura**: Clean Architecture con separación en `cmd/` y `internal/`, será hadler --> service --> repository, con interfaces e inyeccion de dependencias.
--  **Control de versiones**: Git + GitHub
+
+* Lenguaje principal: Go (Golang)
+* Framework HTTP: net/http
+* Router: Chi Router
+* Base de datos: SQLite
+* ORM: GORM
+* Generación de consultas tipadas: SQLC
+* Autenticación: JWT
+* Arquitectura: Clean Architecture
+* Inyección de Dependencias
+* Docker (planificado)
+* Git + GitHub
 
 ---
 
-## Estructura inicial del proyecto
+## Arquitectura General
+
 pesca-directa-tarqui/
- ├── cmd/
- │   └── api/
- │       └── main.go
- ├── internal/
- │   ├── models/         # Entidades de dominio (Especie, Pescador, Restaurante, User)
- │   ├── handlers/       # Endpoints REST
- │   └── storage/        # Conexión a BD y repositorios
- ├── go.mod              # Módulo inicializado
- ├── .gitignore          # Configuración para Go
- └── README.md           # Descripción del proyecto
 
-## Diagrama de módulos
-cmd/api
-   └── Punto de entrada
-        └── internal/ Lógica de negocio
-             ├── especies/ → Catálogo del mar
-             ├── pescadores/ → Perfil y embarcaciones
-             └── restaurantes/ → Perfil y preferencias
+├── cmd/
+│ └── api/
+│ └── main.go
+│
+├── internal/
+│ ├── handlers/
+│ ├── models/
+│ ├── services/
+│ ├── repositories/
+│ └── storage/
+│
+├── migrations/
+├── docs/
+├── go.mod
+├── go.sum
+└── README.md
 
-Relaciones:
-- `especies` provee catálogo y precios base.
-- `pescadores` registran capturas y embarcaciones.
-- `restaurantes` consultan disponibilidad y preferencias.
-- Todos se integran con la lógica de precios dinámicos (alertas de Captura del Día).
+---
+
+## Dominios del Proyecto
+
+### Gestión de Pesca
+
+Responsable: Anthony Macias
+
+* Pescadores
+* Embarcaciones
+* Especies
+* Capturas
+* Bodegas
+* Stock
+
+---
+
+### Gestión de Pedidos
+
+Responsable: Michelle Salazar
+
+* Clientes
+* Pedidos
+* DetallePedido
+
+---
+
+### Ruta de Distribución
+
+Responsable: Madelyn Zambrano
+
+* Rutas
+* Puntos
+* Transportistas
+* EntregaPedido
+
+---
+
+## Flujo General del Sistema
+
+Captura de Pesca
+↓
+Registro de Inventario (Stock)
+↓
+Creación de Pedido
+↓
+Asignación de Ruta
+↓
+Asignación de Transportista
+↓
+Seguimiento de Entrega
+↓
+Recepción por Cliente
+
+---
+
+## Objetivo Académico
+
+Aplicar conceptos de:
+
+* Desarrollo Backend en Go.
+* Diseño de APIs REST.
+* SQLC y GORM.
+* Arquitectura por capas.
+* Inyección de dependencias.
+* Modelado de dominio.
+* Diseño de bases de datos relacionales.
+* Implementación de reglas de negocio reales.
+
+---
+
+## Autores
+
+* Anthony Joel Macias Macias
+* Ilaria Michelle Salazar Rezabala
+* Madelyn Elisa Zambrano Cevallos
+
+Universidad Laica Eloy Alfaro de Manabí (ULEAM)
+
+Tecnologías de la Información
+
+Aplicaciones Web II
