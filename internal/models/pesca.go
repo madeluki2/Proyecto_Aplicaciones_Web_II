@@ -1,7 +1,7 @@
 package models
 
 type Usuario struct {
-	Id           int    `json:"id"`
+	Id           int    `gorm:"primary_key"`
 	Nombre       string `json:"nombre"`
 	Email        string `json:"email"`
 	PasswordHash string `json:"password_hash"`
@@ -11,7 +11,7 @@ type Usuario struct {
 }
 
 type Pescador struct {
-	ID              int    `json:"id"`
+	ID              int    `gorm:"primary_key"`
 	UsuarioID       int    `json:"usuario_id"`
 	Cedula          string `json:"cedula"`
 	ExperienciaAños int    `json:"experiencia_años"`
@@ -20,7 +20,7 @@ type Pescador struct {
 }
 
 type Embarcacion struct {
-	ID          int     `json:"id"`
+	ID          int     `gorm:"primary_key"`
 	PescadorID  int     `json:"pescador_id"`
 	Nombre      string  `json:"nombre"`
 	Matricula   string  `json:"matricula"`
@@ -28,7 +28,7 @@ type Embarcacion struct {
 	Estado      bool    `json:"estado"`
 }
 type Especie struct {
-	ID               int    `json:"id"`
+	ID               int    `gorm:"primary_key"`
 	NombreComun      string `json:"nombre_comun"`
 	NombreCientifico string `json:"nombre_cientifico"`
 	UnidadMedida     string `json:"unidad_medida"`
@@ -37,7 +37,7 @@ type Especie struct {
 }
 
 type Captura struct {
-	ID             int     `json:"id"`
+	ID             int     `gorm:"primary_key"`
 	EmbarcacionID  int     `json:"embarcacion_id"`
 	EspecieID      int     `json:"especie_id"`
 	Fecha          string  `json:"fecha"`
@@ -47,7 +47,7 @@ type Captura struct {
 }
 
 type Bodega struct {
-	ID          int     `json:"id"`
+	ID          int     `gorm:"primary_key"`
 	Nombre      string  `json:"nombre"`
 	Ubicacion   string  `json:"ubicacion"`
 	CapacidadKG float64 `json:"capacidad_kg"`
@@ -55,7 +55,7 @@ type Bodega struct {
 }
 
 type Stock struct {
-	ID           int     `json:"id"`
+	ID           int     `gorm:"primary_key"`
 	BodegaID     int     `json:"bodega_id"`
 	EspecieID    int     `json:"especie_id"`
 	CantidadKG   float64 `json:"cantidad_kg"`
