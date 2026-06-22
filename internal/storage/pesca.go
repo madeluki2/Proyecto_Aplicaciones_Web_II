@@ -67,7 +67,7 @@ func (m *MemoriaPesca) BuscarUsuarioPorID(id int) (models.Usuario, bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	for _, u := range m.usuarios {
-		if u.Id == id {
+		if u.ID == id {
 			return u, true
 		}
 	}
@@ -77,7 +77,7 @@ func (m *MemoriaPesca) BuscarUsuarioPorID(id int) (models.Usuario, bool) {
 func (m *MemoriaPesca) CrearUsuario(u models.Usuario) models.Usuario {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	u.Id = m.nextUsuarioID
+	u.ID = m.nextUsuarioID
 	m.nextUsuarioID++
 	m.usuarios = append(m.usuarios, u)
 	return u
@@ -87,7 +87,7 @@ func (m *MemoriaPesca) ActualizarUsuario(id int, datos models.Usuario) (models.U
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	for i, existing := range m.usuarios {
-		if existing.Id == id {
+		if existing.ID == id {
 			m.usuarios[i] = datos
 			return datos, true
 		}
@@ -99,7 +99,7 @@ func (m *MemoriaPesca) BorrarUsuario(id int) bool {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	for i, u := range m.usuarios {
-		if u.Id == id {
+		if u.ID == id {
 			m.usuarios = append(m.usuarios[:i], m.usuarios[i+1:]...)
 			return true
 		}

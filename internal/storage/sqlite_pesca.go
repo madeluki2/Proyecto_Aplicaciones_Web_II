@@ -54,7 +54,7 @@ func (s *SQLitePesca) ActualizarUsuario(
 		return models.Usuario{}, false
 	}
 
-	datos.Id = id
+	datos.ID = id
 
 	s.db.Save(&datos)
 
