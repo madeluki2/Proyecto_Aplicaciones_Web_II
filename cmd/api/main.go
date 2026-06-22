@@ -13,25 +13,47 @@ import (
 
 func main() {
 
-	// Gestión de Pesca
-	storePesca := storage.NuevaMemoriaPesca()
+	// =========================
+	// Gestión de Pesca (SQLite)
+	// =========================
 
+	db, err := storage.NuevaConexionSQLite()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	storePesca := storage.NuevaSQLitePesca(db)
+
+	// =========================
 	// Gestión de Pedidos
+	// =========================
+
 	almacenPedidos := storage.NewMemoria()
 	almacenPedidos.Seed()
+
 	servidorPedidos := handlers.NewServer(almacenPedidos)
+
+	// =========================
+	// Router principal
+	// =========================
 
 	r := chi.NewRouter()
 
 	r.Use(chimw.Logger)
 	r.Use(chimw.Recoverer)
 
+	// =========================
 	// Rutas Pesca
+	// =========================
+
 	r.Route("/api/v1", func(r chi.Router) {
 		handlers.MontarRutasPesca(r, storePesca)
 	})
 
+	// =========================
 	// Rutas Pedidos
+	// =========================
+
 	r.Route("/api/v1/clientes", func(r chi.Router) {
 		r.Get("/", servidorPedidos.ListarClientes)
 		r.Post("/", servidorPedidos.CrearCliente)
@@ -42,6 +64,10 @@ func main() {
 		r.Get("/", servidorPedidos.ListarPedidos)
 		// ...
 	})
+
+	// =========================
+	// Servidor
+	// =========================
 
 	log.Println("Servidor iniciado en http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", r))
